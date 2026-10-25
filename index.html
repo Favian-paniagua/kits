@@ -57,7 +57,7 @@ nav.pill{pointer-events:auto;display:flex;align-items:center;gap:4px;padding:5px
 .badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.22);display:inline-grid;place-items:center;font-size:.74rem;font-variant-numeric:tabular-nums}
 :root[data-theme="dark"] .badge{background:rgba(0,0,0,.18)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .badge{background:rgba(0,0,0,.18)}}
-@media (max-width:620px){.nav-link{display:none}nav.pill .burger{display:block}}
+@media (max-width:620px){.nav-link{display:none}nav.pill .cart-btn{display:none}nav.pill .burger{display:block}}
 @media (prefers-reduced-transparency:reduce){nav.pill{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}}
 
 /* ---------- Menú hamburguesa (solo celular) ---------- */
@@ -74,7 +74,8 @@ nav.pill{pointer-events:auto;display:flex;align-items:center;gap:4px;padding:5px
 .mmenu-list{display:grid;gap:10px;width:100%;max-width:420px;margin:0 auto}
 .mmenu-list a{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 20px;border-radius:18px;background:var(--surface);color:var(--fg);text-decoration:none;font-size:1.15rem;font-weight:600;letter-spacing:-.01em;box-shadow:0 1px 2px rgba(0,0,0,.06),0 14px 30px -18px rgba(0,0,0,.4);opacity:0;transform:translateY(-8px) scale(.98);transition:opacity 150ms ease,transform 150ms var(--ease-out)}
 .mmenu-list a small{font-family:var(--f-mono);font-size:.68rem;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.mmenu-list .mm-wa{background:var(--wa);color:#fff;justify-content:center;margin-top:6px}
+.mmenu-list .mm-cart{background:var(--green);color:var(--on-green);justify-content:center;gap:10px;margin-top:6px}
+.burger-dot{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;padding:0 5px;border-radius:999px;background:var(--gold);color:#15110A;font-size:.64rem;font-weight:700;line-height:17px;text-align:center;font-variant-numeric:tabular-nums;font-style:normal;box-shadow:0 0 0 2px var(--surface)}
 .mmenu.open .mmenu-list a{opacity:1;transform:none;transition:opacity 260ms ease,transform 320ms var(--ease-out)}
 .mmenu.open .mmenu-list a:nth-child(2){transition-delay:40ms}
 .mmenu.open .mmenu-list a:nth-child(3){transition-delay:80ms}
@@ -252,7 +253,7 @@ details summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
     <a class="nav-link" href="#envios">Envíos</a>
     <a class="nav-link" href="#contacto">Contacto</a>
     <button class="cart-btn" id="openCart" aria-label="Abrir mi cotización">Cotización <span class="badge" id="count">0</span></button>
-    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Abrir menú"><i></i><i></i><i></i></button>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Abrir menú"><i></i><i></i><i></i><span class="burger-dot" id="count3" hidden>0</span></button>
   </nav>
 </div>
 
@@ -262,7 +263,7 @@ details summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
     <a href="#como-comprar">Cómo comprar <small>4 pasos</small></a>
     <a href="#envios">Envíos y pago <small>Toda Bolivia</small></a>
     <a href="#contacto">Contacto <small>WhatsApp</small></a>
-    <a class="mm-wa waLink" href="#" target="_blank" rel="noopener">Escribir por WhatsApp</a>
+    <a class="mm-cart" id="mmCart" href="#" role="button">Ver mi cotización <span class="badge" id="count2">0</span></a>
   </nav>
 </div>
 
@@ -427,7 +428,7 @@ function add(btn){
   // Estado del botón
   btn.classList.add("done"); clearTimeout(btn._t); btn._t=setTimeout(()=>btn.classList.remove("done"),1400);
   // Pulso del contador (retroalimentación, lejos del botón)
-  if(!reduce.matches){ $("#count").animate([{transform:"scale(1)"},{transform:"scale(1.25)"},{transform:"scale(1)"}],{duration:260,easing:"cubic-bezier(0.23,1,0.32,1)"}); }
+  if(!reduce.matches){ [$("#count"),$("#count3")].forEach(el=>el.animate([{transform:"scale(1)"},{transform:"scale(1.25)"},{transform:"scale(1)"}],{duration:260,easing:"cubic-bezier(0.23,1,0.32,1)"})); }
 }
 
 function message(){
@@ -441,7 +442,9 @@ function message(){
 const waUrl = txt => `https://wa.me/${WHATSAPP}${txt?"?text="+encodeURIComponent(txt):""}`;
 
 function renderCart(){
-  $("#count").textContent = cart.reduce((a,c)=>a+c.qty,0);
+  const n = cart.reduce((a,c)=>a+c.qty,0);
+  $("#count").textContent = n; $("#count2").textContent = n;
+  const dot = $("#count3"); dot.textContent = n; dot.hidden = !n;
   const body = $("#dBody");
   if(!cart.length){
     body.innerHTML = `<div class="empty"><b>Tu cotización está vacía</b><span>Agrega kits desde el catálogo.</span></div>`;
@@ -507,6 +510,7 @@ mm.addEventListener("click",()=>setMenu(false));
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&mm.classList.contains("open")){ setMenu(false); burger.focus(); } });
 matchMedia("(min-width:621px)").addEventListener("change",e=>{ if(e.matches) setMenu(false); });
 $("#openCart").onclick=()=>{ setMenu(false); openCart(); };
+$("#mmCart").addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation(); setMenu(false); openCart(); lastFocus = burger; });
 </script>
 
 </body>
