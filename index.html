@@ -184,11 +184,12 @@ nav.pill{pointer-events:auto;display:flex;align-items:center;gap:4px;padding:5px
 .qr p{flex:1;min-width:180px;color:var(--muted);font-size:.93rem}
 
 /* ---------- Contacto ---------- */
-.contact{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:24px;padding-block:56px;border-top:1px solid var(--line)}
-.contact > div{display:grid;gap:10px;min-width:0}
-.num{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--f-mono);font-size:1.05rem}
-.copy{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 12px;font-size:.78rem;transition:transform 160ms var(--ease-out)}
-.copy:active{transform:scale(.97)}
+.contact-wrap{display:flex;justify-content:center;padding-block:8px 88px}
+.contact{width:100%;max-width:420px;aspect-ratio:1/1;display:grid;place-content:center;justify-items:center;gap:12px;text-align:center;padding:32px 28px;border-radius:28px;background:var(--surface);border:1px solid var(--line);box-shadow:0 30px 60px -40px rgba(0,0,0,.35)}
+.contact .wa-ico{width:64px;height:64px;border-radius:20px;background:color-mix(in srgb,var(--wa) 14%,transparent);color:var(--wa);display:grid;place-items:center;margin-bottom:6px}
+.contact .wa-ico svg{width:32px;height:32px}
+.contact p{color:var(--muted);max-width:30ch}
+.contact .btn{margin-top:10px}
 footer{padding-block:24px 40px;color:var(--muted);font-size:.84rem}
 footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px}
 .brandword{font-family:var(--f-brand);letter-spacing:.14em;color:var(--fg)}
@@ -332,14 +333,13 @@ details summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
     </div>
   </section>
 
-  <div class="wrap" id="contacto" style="scroll-margin-top:72px">
+  <div class="wrap contact-wrap" id="contacto" style="scroll-margin-top:72px">
     <div class="contact">
-      <div>
-        <div class="label">Contacto</div>
-        <h2>¿Dudas sobre un kit?</h2>
-        <div class="num"><span id="numText"></span><button class="copy" id="copyNum" type="button">Copiar</button></div>
-      </div>
-      <a class="btn btn-wa waLink" href="#" target="_blank" rel="noopener">Escribir por WhatsApp</a>
+      <div class="wa-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3Z"/></svg></div>
+      <div class="label">Contacto</div>
+      <h2>¿Dudas sobre un kit?</h2>
+      <p>Escríbenos y te ayudamos a elegir el instrumental adecuado para tu clínica.</p>
+      <a class="btn btn-wa waLink" href="https://wa.link/gpcnt0" target="_blank" rel="noopener">Escribir por WhatsApp</a>
     </div>
   </div>
 </main>
@@ -358,13 +358,14 @@ details summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
     <details><summary>Ver mensaje que se enviará</summary><div class="preview" id="preview"></div></details>
     <a class="btn btn-wa" id="sendWa" href="#" target="_blank" rel="noopener">Enviar pedido por WhatsApp</a>
     <button class="btn btn-quiet" id="copyMsg" type="button">Copiar mensaje</button>
-    <p class="note">Si WhatsApp no se abre, copia el mensaje y envíalo al número de contacto.</p>
+    <p class="note" id="waNote">Al enviar, copiamos tu pedido para que lo pegues en el chat de WhatsApp.</p>
   </div>
 </aside>
 
 <script>
 // ===== CONFIGURACIÓN: tu número de WhatsApp (código de país + número, sin + ni espacios) =====
-const WHATSAPP = "59170000000";
+const WHATSAPP = ""; // opcional: número para que el pedido llegue ya escrito (ej. 59170000000)
+const WA_LINK = "https://wa.link/gpcnt0";
 
 const ICONS = {
   scalpel:'<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 70h120"/><path d="M140 70c20 0 40-8 54-20-14 22-34 30-54 30"/><path d="M40 64v12M52 64v12M64 64v12"/></g>',
@@ -437,7 +438,7 @@ function message(){
   if(name) m += `\nNombre/Clínica: ${name}`;
   return m;
 }
-const waUrl = txt => `https://wa.me/${WHATSAPP}${txt?"?text="+encodeURIComponent(txt):""}`;
+const waUrl = txt => WHATSAPP ? `https://wa.me/${WHATSAPP}${txt?"?text="+encodeURIComponent(txt):""}` : WA_LINK;
 
 function renderCart(){
   const n = cart.reduce((a,c)=>a+c.qty,0);
@@ -471,9 +472,7 @@ async function copy(text, btn){
 }
 
 renderGrid(); renderCart();
-const pretty = "+" + WHATSAPP.slice(0,3) + " " + WHATSAPP.slice(3);
-$("#numText").textContent = pretty;
-document.querySelectorAll(".waLink").forEach(a=>a.href=waUrl("Hola MK International, quiero información sobre sus kits de cirugía."));
+document.querySelectorAll(".waLink").forEach(a=>a.href=WA_LINK);
 
 $("#grid").addEventListener("click",e=>{
   const s = e.target.closest(".seg button");
@@ -493,7 +492,7 @@ $("#openCart").onclick=openCart; $("#closeCart").onclick=closeCart; $("#scrim").
 document.addEventListener("keydown",e=>{ if(e.key==="Escape" && $("#drawer").classList.contains("open")) closeCart(); });
 $("#cName").addEventListener("input",updateMsg); $("#cCity").addEventListener("change",updateMsg);
 $("#copyMsg").onclick=e=>copy(message(),e.currentTarget);
-$("#copyNum").onclick=e=>copy(pretty,e.currentTarget);
+$("#sendWa").addEventListener("click",()=>{ if(WHATSAPP) return; try{ navigator.clipboard.writeText(message()).then(()=>{ $("#waNote").textContent="Copiamos tu pedido. Pégalo en el chat de WhatsApp."; }).catch(()=>{}); }catch(e){} });
 
 // Menú hamburguesa
 const burger=$("#burger"), mm=$("#mmenu");
