@@ -63,6 +63,19 @@ nav.pill{pointer-events:auto;display:flex;align-items:center;gap:4px;padding:5px
 :root[data-theme="dark"] .badge{background:rgba(0,0,0,.18)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .badge{background:rgba(0,0,0,.18)}}
 @media (max-width:620px){.nav-link{display:none}nav.pill .cart-btn{display:none}nav.pill .burger{display:block}}
+.cart-btn.has .badge{background:#D7B46C;color:#15110A;font-weight:700}
+
+/* ---------- Aviso al agregar ---------- */
+.toast{position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:50%;z-index:25;display:flex;align-items:center;gap:10px;max-width:calc(100% - 32px);padding:7px 7px 7px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:0 14px 34px -16px rgba(0,0,0,.45);font-size:.88rem;font-weight:500;opacity:0;visibility:hidden;transform:translate(-50%,-10px) scale(.97);transition:transform 180ms var(--ease-out),opacity 160ms ease,visibility 0s linear 180ms}
+.toast.show{opacity:1;visibility:visible;transform:translate(-50%,0);transition:transform 320ms var(--ease-out),opacity 220ms ease}
+.toast-ico{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#D7B46C;color:#15110A}
+.toast-ico svg{width:14px;height:14px}
+#toastText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#toastText b{font-weight:600}
+.toast button{flex:none;border:0;border-radius:999px;background:var(--green);color:var(--on-green);padding:6px 14px;font-size:.82rem;font-weight:600;transition:transform 160ms var(--ease-out)}
+.toast button:active{transform:scale(.96)}
+@media (max-width:620px){.toast .hide-sm{display:none}}
+@media (prefers-reduced-motion:reduce){.toast,.toast.show{transform:translate(-50%,0)}}
 @media (prefers-reduced-transparency:reduce){nav.pill{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}}
 
 /* ---------- Menú hamburguesa (solo celular) ---------- */
@@ -381,6 +394,12 @@ details summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
 <footer><div class="wrap"><span class="brandword">MK INTERNATIONAL</span><span>Santa Cruz, Bolivia · © 2026</span></div></footer>
 
 
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="toast-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  <span id="toastText"></span>
+  <button type="button" id="toastView">Ver<span class="hide-sm"> cotización</span></button>
+</div>
+
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-label="Mi cotización" inert>
   <div class="d-head"><h3>Mi cotización</h3><button class="x" id="closeCart" type="button" aria-label="Cerrar">×</button></div>
@@ -476,7 +495,21 @@ function add(btn){
   // Estado del botón
   btn.classList.add("done"); clearTimeout(btn._t); btn._t=setTimeout(()=>btn.classList.remove("done"),1400);
   // Pulso del contador (retroalimentación, lejos del botón)
-  if(!reduce.matches){ [$("#count"),$("#count3")].forEach(el=>el.animate([{transform:"scale(1)"},{transform:"scale(1.25)"},{transform:"scale(1)"}],{duration:260,easing:"cubic-bezier(0.23,1,0.32,1)"})); }
+  if(!reduce.matches){ [$("#count"),$("#count3")].forEach(el=>el.animate([{transform:"scale(1)"},{transform:"scale(1.35)"},{transform:"scale(1)"}],{duration:320,easing:"cubic-bezier(0.23,1,0.32,1)"})); }
+  // Brillo dorado en el botón de cotización (o en el menú, en celular)
+  const target = matchMedia("(max-width:620px)").matches ? $("#burger") : $("#openCart");
+  const glow = reduce.matches
+    ? [{boxShadow:"0 0 0 0 rgba(215,180,108,0)"},{boxShadow:"0 0 0 5px rgba(215,180,108,.45), 0 0 22px 6px rgba(215,180,108,.5)",offset:.35},{boxShadow:"0 0 0 0 rgba(215,180,108,0)"}]
+    : [{transform:"scale(1)",boxShadow:"0 0 0 0 rgba(215,180,108,0)"},{transform:"scale(1.1)",boxShadow:"0 0 0 5px rgba(215,180,108,.45), 0 0 22px 6px rgba(215,180,108,.5)",offset:.3},{transform:"scale(1)",boxShadow:"0 0 0 14px rgba(215,180,108,0), 0 0 0 0 rgba(215,180,108,0)"}];
+  target.animate(glow,{duration:700,easing:"cubic-bezier(0.23,1,0.32,1)"});
+  showToast(k.name + (size ? " · " + size : ""));
+}
+
+let toastT=null;
+function showToast(name){
+  $("#toastText").innerHTML = "<b>Agregado:</b> " + name;
+  const t=$("#toast"); t.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2800);
 }
 
 function message(){
@@ -493,6 +526,7 @@ function renderCart(){
   const n = cart.reduce((a,c)=>a+c.qty,0);
   $("#count").textContent = n; $("#count2").textContent = n;
   const dot = $("#count3"); dot.textContent = n; dot.hidden = !n;
+  $("#openCart").classList.toggle("has", n>0);
   const body = $("#dBody");
   if(!cart.length){
     body.innerHTML = `<div class="empty"><b>Tu cotización está vacía</b><span>Agrega kits desde el catálogo.</span></div>`;
@@ -590,6 +624,7 @@ mm.addEventListener("click",()=>setMenu(false));
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&mm.classList.contains("open")){ setMenu(false); burger.focus(); } });
 matchMedia("(min-width:621px)").addEventListener("change",e=>{ if(e.matches) setMenu(false); });
 $("#openCart").onclick=()=>{ setMenu(false); openCart(); };
+$("#toastView").addEventListener("click",()=>{ $("#toast").classList.remove("show"); setMenu(false); openCart(); });
 $("#mmCart").addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation(); setMenu(false); openCart(); lastFocus = burger; });
 </script>
 
