@@ -690,7 +690,7 @@ function openPhoto(id){ const k=KITS.find(x=>x.id===id); if(!k||!k.photos) retur
 function closePhoto(){ lb.classList.remove("open"); lb.inert=true; document.body.classList.remove("lb-open"); if(lbLast) lbLast.focus({preventScroll:true}); }
 $("#lbPrev").addEventListener("click",e=>{ e.stopPropagation(); showPhoto(lbI-1,-1); });
 $("#lbNext").addEventListener("click",e=>{ e.stopPropagation(); showPhoto(lbI+1,1); });
-lb.addEventListener("click",e=>{ if(swiped){ swiped=false; return; } if(!e.target.closest("#lbImg,.lb-nav,.lb-info")) closePhoto(); });
+lb.addEventListener("click",e=>{ if(swiped){ swiped=false; return; } if(!e.target.isConnected) return; if(!e.target.closest("#lbImg,.lb-nav,.lb-info")) closePhoto(); });
 document.addEventListener("keydown",e=>{
   if(!lb.classList.contains("open")) return;
   if(e.key==="Escape") closePhoto();
@@ -709,7 +709,9 @@ function drawVariant(k,vi){
   const c=CONTENTS[k.id], v=c.variants[vi], seg=$("#infoSeg");
   $("#infoTitle").textContent=v.title;
   if(c.variants.length>1){ seg.hidden=false; seg.dataset.i=vi;
-    seg.innerHTML=c.variants.map((x,i)=>`<button type="button" role="radio" aria-checked="${i===vi}" data-vi="${i}">${x.label} · ${x.total}</button>`).join(""); }
+    if(seg.dataset.kit!==k.id){ seg.dataset.kit=k.id;
+      seg.innerHTML=c.variants.map((x,i)=>`<button type="button" role="radio" data-vi="${i}">${x.label} · ${x.total}</button>`).join(""); }
+    seg.querySelectorAll("button").forEach((b,i)=>b.setAttribute("aria-checked", i===vi)); }
   else seg.hidden=true;
   $("#infoTable").innerHTML=`<table class="ktable"><thead><tr><th>Pieza</th><th class="s">Tamaño</th><th class="s">Tipo</th><th class="c">Cant.</th></tr></thead><tbody>${
     v.groups.map(g=>(g.name?`<tr class="grp"><td colspan="4">${g.name}</td></tr>`:"")+g.rows.map(r=>`<tr><td>${r[0]}<span class="sub">${r[1]}${r[2]?" · "+r[2]:""}</span></td><td class="s">${r[1]}</td><td class="s">${r[2]||"—"}</td><td class="c">${r[3]}</td></tr>`).join("")).join("")
